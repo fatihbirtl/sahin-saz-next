@@ -1,0 +1,77 @@
+import { Container } from "@/components/ui/container"
+import { notFound, redirect } from "next/navigation"
+import PostList from "./components/post-list"
+import { fetchFilteredCategoryPages, getCategory } from "@/lib/data"
+import Pagination from "@/components/frontend-ui/pagination"
+import SearchCategory from "@/components/frontend-ui/search-category"
+import { Metadata } from "next"
+import { Suspense } from "react"
+import Loading from "@/app/loadings"
+
+export const dynamic = "force-static"
+
+type Props = {
+  params: { slug: string }
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  // read route params
+  const slug = params.slug
+
+  // fetch data
+  const category = await getCategory({ params })
+  if (!category) notFound()
+
+  // optionally access and extend (rather than replace) parent metadata
+
+  return {
+    title: category.metaTitle || category.name,
+    description: category.metaDescription || category.metaTitle,
+  }
+}
+
+export default async function CategoryPage({
+  params,
+  searchParams,
+}: {
+  params: { slug: string }
+  searchParams?: {
+    query?: string
+    page?: string
+  }
+}) {
+  const query = searchParams?.query || ""
+  const currentPage = Number(searchParams?.page) || 1
+
+  const pagesInfo = await fetchFilteredCategoryPages(query, {
+    params,
+  })
+
+  if (!pagesInfo) {
+    redirect("/category")
+  }
+
+  const { totalPages, count } = pagesInfo
+
+  return (
+    <Container className="py-0">
+      {pagesInfo ? (
+        <Suspense fallback={<Loading />}>
+          <PostList
+            count={count}
+            params={{ params }}
+            query={query}
+            currentPage={currentPage}
+          />
+        </Suspense>
+      ) : (
+        <div>
+          <h4 className="text-2xl font-semibold tracking-tight">
+            No posts found...
+          </h4>
+        </div>
+      )}
+      {totalPages !== 0 && <Pagination totalPages={totalPages} />}
+    </Container>
+  )
+}

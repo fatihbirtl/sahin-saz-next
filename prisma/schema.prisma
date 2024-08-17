@@ -1,0 +1,330 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url  	    = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+model User {
+  id                  String        @id @default(uuid())
+  username            String        @unique
+  email               String        @unique
+  password            String
+  isPro               Boolean       @default(false)
+  role                String?       @default("")
+  avatar              String?       @default("")
+  createdAt           DateTime      @default(now())
+  
+}
+
+model Slider {
+  userId        String 
+  id            String @id @default(uuid())
+  sliderItems   SliderItem[] 
+  name          String   @unique
+  imageWidth    Int
+  imageHeight   Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model SliderItem {
+  id            String    @id @default(uuid())
+  sliderId      String
+  slider        Slider    @relation(fields: [sliderId], references: [id])
+  title         String?   @default("")  
+  description   String?   @default("")
+  content       String?    @db.Text 
+  imageUrl      String
+  showButton    Boolean   @default(false)
+  buttonText    String?   @default("")  
+  href          String?   @default("")
+  position      Int
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([sliderId])
+}
+
+model Page {
+  id                String        @id @default(uuid())
+  title             String
+  description       String    
+  slug              String     @unique
+  content           String?    @db.Text 
+  coverImage        String    
+   faq                   Faq[]
+  metaTitle         String?    @default("")
+  metaDescription   String?    @default("")
+   isFeatured    Boolean   @default(false)
+  isArchived    Boolean   @default(false)
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+
+
+
+model Logo{
+  id          String      @id @default(uuid())
+  name        String      @default("header") @unique
+  width       Int         @default(144)
+  height      Int         @default(60)
+  imageUrl    String
+
+  createdAt           DateTime  @default(now())
+}
+
+model ContactMessage {
+  id          String @id @default(uuid())
+  name       String
+  subject     String 
+  email       String
+  phone       String
+  message     String   @db.VarChar(666)
+  read      Boolean  @default(false) 
+
+  createdAt         DateTime  @default(now())
+}
+
+
+model Contact {
+  id          String @id @default(uuid())
+  name        String
+  subject     String 
+  email       String
+  phone       String
+  message     String   @db.Text
+
+  createdAt         DateTime  @default(now())
+}
+
+
+
+model MailForm {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  acceptTerms   Boolean   
+
+  createdAt         DateTime  @default(now())
+}
+
+model SiteSettings {
+  id      String    @id @default(uuid())
+  name    String    @unique
+  websiteTitle    String? @default("")
+  companyName     String? 
+  companySlogan   String? 
+  address         String?
+  email             String?
+  phone           String?
+  phone1          String?
+  whatsapp        String?
+  gsm             String?
+  pageImageUrl    String?
+  notFoundImageUrl String?
+  showMailForm    Boolean @default(true)
+  metaTitle         String?    @default("")
+  metaDescription   String?    @default("")
+  createdAt       DateTime  @default(now())
+}
+
+model SocialMedia {
+  id            String    @id @default(uuid())
+  name          String    @unique  @default("SocialMedia")
+  facebook      Boolean   @default(false)
+  facebookLink  String? 
+  twitter       Boolean   @default(false)
+  twitterLink   String? 
+  youtube       Boolean   @default(false)
+  youtubeLink   String? 
+  linkedin      Boolean   @default(false)
+  linkedinLink  String? 
+  instagram     Boolean   @default(false)
+  instagramLink String? 
+  showHeader    Boolean   @default(false)
+  showFooter    Boolean   @default(true)
+  showIcon     Boolean    @default(true)
+  showTitle     Boolean   @default(false)
+
+  createdAt       DateTime  @default(now())
+}
+// schema.prisma
+
+model Menu {
+  id        String    @id @default(uuid())
+  name      String   @unique
+  items     MenuItem[]
+}
+
+model MenuItem {
+  id        String    @id @default(uuid())
+  value     String
+  url       String
+  parentId  String?
+  menuId    String
+  position      Int
+  menu      Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+
+
+
+  @@index([menuId], name: "menu_id_index")
+
+}
+
+model MaintenanceMode {
+  id            String @id  @default(uuid())
+  mode          Boolean  @default(false)
+  name          String  @unique
+  content       String?    @db.Text  
+  createdAt     DateTime @default(now())
+}
+
+
+
+model Post {
+  id                String        @id @default(uuid())
+  title             String
+  description       String    @db.VarChar(666)
+  content           String?    @db.Text  
+  slug              String     @unique
+  coverImage        String?     @default("")
+  categories        PostCategory[]  // Kategorilerle ilişkiyi tanımlayın
+  images            PostImage[]
+  template           String   @default("style1")
+  faq                   Faq[]
+  metaTitle         String?    @default("")
+  metaDescription   String?    @default("")
+  isFeatured        Boolean   @default(false)
+  isArchived        Boolean   @default(false)
+  relatedPosts      Post[]    @relation("relatedPosts")
+  relatedPostsOpp   Post[]    @relation("relatedPosts")
+  relatedProducts   Product[] 
+  showPhone        Boolean   @default(true) 
+  
+
+  publishedAt   DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model PostImage {
+  id          String   @id @default(uuid())
+  postId      String  
+  post        Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  url         String   
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([postId])
+}
+
+model PostCategory {
+  id                String     @id @default(uuid())
+  name              String
+  slug              String     @unique
+  posts             Post[]    
+  description       String?     @db.VarChar(666)   @default("")
+  content           String?    @db.Text 
+  metaTitle         String?     @default("")
+  metaDescription   String?     @default("")
+  isFeatured        Boolean     @default(false)
+  isArchived        Boolean     @default(false)
+  imageUrl          String?     @default("")
+
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+}
+
+
+model Product {
+  id                    String        @id @default(uuid())
+  title                 String
+  description           String    @db.VarChar(666)
+  content               String?    @db.Text  
+  slug                  String     @unique
+  categories            ProductCategory[]  // Kategorilerle ilişkiyi tanımlayın
+  coverImage            String  @default("")
+  metaTitle             String?    @default("")
+  metaDescription       String?    @default("")
+  isFeatured            Boolean   @default(false)
+  isArchived            Boolean   @default(false)
+  relatedProducts       Product[]    @relation("relatedProducts")
+  relatedProductsOpp    Product[]    @relation("relatedProducts")
+  relatedPosts          Post[]  
+   faq                   Faq[]
+  images                ProductImage[]
+  template           String   @default("style1")
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+}
+
+model ProductCategory {
+  id                String     @id @default(uuid())
+  name              String
+  slug              String     @unique
+  products          Product[]    
+  description       String?     @db.VarChar(666)   @default("")
+  content           String?     @db.Text 
+  metaTitle         String?     @default("")
+  metaDescription   String?     @default("")
+  isFeatured        Boolean     @default(false)
+  isArchived        Boolean     @default(false)
+  imageUrl          String?     @default("")
+
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+}
+
+model ProductImage {
+  id          String   @id @default(uuid())
+  productId   String   // Foreign Key to Product
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url         String   // URL of the image
+ 
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([productId])
+}
+
+
+model Faq {
+  id                   String          @id @default(uuid())
+  products             Product[] 
+  pages                Page[] 
+  posts                Post[] 
+  
+ 
+  items          FaqItem[]
+  name           String 
+  title          String?         @default("")  
+  description    String?         @default("")
+  position       Int             @default(0)
+  isFeatured     Boolean         @default(false)
+  isArchived     Boolean         @default(false)
+  createdAt      DateTime        @default(now())
+}
+
+model FaqItem {
+  id              String      @id @default(uuid())
+  faqId           String
+  faq             Faq        @relation(fields: [faqId], references: [id], onDelete: Cascade)
+  title           String 
+  content         String
+  showLink        Boolean    @default(false)
+  link            String     @default("")
+  position        Int
+  createdAt       DateTime    @default(now())
+
+  @@index([faqId])
+}
+
