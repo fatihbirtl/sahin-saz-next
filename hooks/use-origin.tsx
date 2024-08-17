@@ -13,7 +13,9 @@ export const useOrigin = () => {
     setIsMounted(true)
   }, [])
 
-  if (!isMounted) return ""
+  if (!isMounted) {
+    return ""
+  }
 
   return origin
 }
